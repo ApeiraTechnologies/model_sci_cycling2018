@@ -1,5 +1,7 @@
 import numpy as np
 from utls.extract_data import extract_from_int
+from model_perf.model_acd import est_wind
+from model_perf.model_acd import model_grappe
 from skcycling.io import bikeread
 
 if __name__ == '__main__':
@@ -41,9 +43,37 @@ if __name__ == '__main__':
 
     l_power_mean = []
     l_speed_mean = []
-    for i in range(len(l_power)):
-        np.array(l_power[i])
-        np.array(l_speed[i])
+    # for i in range(len(l_power)):
+    #     np.array(l_power[i])
+    #     np.array(l_speed[i])
 
-        l_power_mean.append(np.mean(l_power[i]))
-        l_speed_mean.append(np.mean(l_speed[i]))
+    #     l_power_mean.append(np.mean(l_power[i]))
+    #     l_speed_mean.append(np.mean(l_speed[i]))
+
+    l_power_mean = [93, 187, 149, 269, 229, 327, 122, 200, 144, 259, 196, 328]
+    l_speed_mean = [25.4, 25.4, 29.8, 28.7, 34.3, 32.9, 26.8, 24.4, 30.2, 31.9,
+                    34.6, 35.3]
+    l_speed_mean = np.array(l_speed_mean) / 3.6
+    l_ACd = []
+    l_wind = []
+
+    for i in range(len(l_power)):
+        if i % 2 == 0:
+            val_wind = est_wind(l_power_mean[i], l_power_mean[i+1],
+                                l_speed_mean[i], l_speed_mean[i+1])
+            l_wind.append(val_wind)
+
+    np.array(l_wind)
+    wind_mean = np.mean(l_wind)
+
+    for i in range(len(l_power_mean)):
+        # back wind
+        if i % 2 == 0:
+            val_acd = model_grappe(l_power_mean[i], l_speed_mean[i],
+                                   l_wind[int(i/2)], 4, 1010, 0.0035, 100)
+        # front wind
+        else:
+            val_acd = model_grappe(l_power_mean[i], l_speed_mean[i],
+                                   -l_wind[int(i//2)], 4, 1010, 0.0035, 100)
+
+        l_ACd.append(val_acd)
