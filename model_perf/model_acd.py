@@ -14,11 +14,10 @@ def est_wind(p1, p2, v1, v2):
     return v_wind
 
 
-def model_grappe(power, v, va, temperature, pressure, cr, m):
+def inv_model_grappe_ACd(power, v, va, temperature, pressure, cr, m):
     G = 9.81
     val_rho = rho(pressure, temperature)
     A = cr * m * G
-    print(A * v)
     B = 0.5 * val_rho
 
     ACd = (power - v * A) / (B * (v + va)**2 * v)
@@ -34,3 +33,12 @@ def rho(P, T):
     val_rho = rho_0 * (P_mmHg / 760) * (273 / T_c)
 
     return val_rho
+
+
+def inv_model_grappe_F(power, v, cr, m):
+    G = 9.81
+    A = cr * m * G
+
+    f_aero = ((power/v) - A)
+
+    return f_aero

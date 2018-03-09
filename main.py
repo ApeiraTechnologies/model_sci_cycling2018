@@ -1,7 +1,8 @@
 import numpy as np
 from utls.extract_data import extract_from_int
 from model_perf.model_acd import est_wind
-from model_perf.model_acd import model_grappe
+from model_perf.model_acd import inv_model_grappe_ACd
+from model_perf.model_acd import inv_model_grappe_F
 from skcycling.io import bikeread
 
 if __name__ == '__main__':
@@ -49,12 +50,18 @@ if __name__ == '__main__':
 
     #     l_power_mean.append(np.mean(l_power[i]))
     #     l_speed_mean.append(np.mean(l_speed[i]))
+    # l_power_mean = [93, 187, 149, 269, 229, 327, 122, 200,
+    # 144, 259, 196, 328]
+    # l_speed_mean = [25.4, 25.4, 29.8, 28.7, 34.3, 32.9, 26.8,
+    # 24.4, 30.2, 31.9,
 
-    l_power_mean = [93, 187, 149, 269, 229, 327, 122, 200, 144, 259, 196, 328]
-    l_speed_mean = [25.4, 25.4, 29.8, 28.7, 34.3, 32.9, 26.8, 24.4, 30.2, 31.9,
-                    34.6, 35.3]
+    l_power_mean = [117, 139, 165, 212, 240, 283, 124, 146, 156, 214, 226, 278]
+    l_speed_mean = [25.1, 25.5, 30.5, 30.6, 34.8, 34.3, 27.1, 26.9, 31.3, 30.3,
+                    34.8, 34.7]
     l_speed_mean = np.array(l_speed_mean) / 3.6
+    l_power_mean = np.array(l_power_mean) * 0.9
     l_ACd = []
+    l_f_aero = []
     l_wind = []
 
     for i in range(len(l_power)):
@@ -67,13 +74,24 @@ if __name__ == '__main__':
     wind_mean = np.mean(l_wind)
 
     for i in range(len(l_power_mean)):
-        # back wind
-        if i % 2 == 0:
-            val_acd = model_grappe(l_power_mean[i], l_speed_mean[i],
-                                   l_wind[int(i/2)], 4, 1010, 0.0035, 100)
-        # front wind
-        else:
-            val_acd = model_grappe(l_power_mean[i], l_speed_mean[i],
-                                   -l_wind[int(i//2)], 4, 1010, 0.0035, 100)
-
+        val_acd = inv_model_grappe_ACd(l_power_mean[i], l_speed_mean[i],
+                                       0, 10, 990, 0.004, 100)
+        val_f_aero = inv_model_grappe_F(l_power_mean[i], l_speed_mean[i],
+                                        0.004, 100)
+        l_f_aero.append(val_f_aero)
         l_ACd.append(val_acd)
+
+        l_ACd_f = []
+    for i in range(len(l_power_mean)):
+        if i % 2 == 0:
+            moy_acd = (l_ACd[i] + l_ACd[i+1]) / 2
+            moy_f = (l_f_aero[i] + l_f_aero[i+1]) / 2
+            l_ACd_f.append([moy_acd, moy_f])
+
+    print("Valeur main en haut : 25, 30, 35km/h / ACd - F")
+    for i in range(3):
+        print(l_ACd_f[i][0], " - ", l_ACd_f[i][1])
+
+    print("Valeur main en bas : 25, 30, 35km/h / ACd - F")
+    for i in range(3):
+        print(l_ACd_f[i+3][0], " - ", l_ACd_f[i+3][1])
